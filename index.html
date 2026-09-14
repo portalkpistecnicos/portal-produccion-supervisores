@@ -1,0 +1,323 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Producción por Técnico — Portal Supervisores</title>
+<meta name="description" content="Puntos Baremo diarios y totales por técnico, cada supervisor ve solo su equipo, Elecnor Chile.">
+<style>
+:root{
+  --azul:#003F86; --naranja:#F47C02; --azul-claro:#cde2fb;
+  --bg:#f4f6f9; --card:#ffffff; --ink:#14213d; --sub:#5b6b85; --border:#e2e7f0;
+  --good:#1c8a4b; --good-bg:#e8f6ee; --warn:#b45309; --warn-bg:#fef3e2; --bad:#c0342c; --bad-bg:#fdeceb;
+  --chip-bg:#eef1f6; --chip-off:#f4f6f9;
+  --shadow:0 1px 3px rgba(20,33,61,.08), 0 1px 2px rgba(20,33,61,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1626; --card:#161f36; --ink:#eef2fb; --sub:#a9b6d0; --border:#2a3654;
+    --good:#3ecb7e; --good-bg:#0f2a1d; --warn:#f0a94e; --warn-bg:#302008; --bad:#f0685f; --bad-bg:#331413;
+    --azul-claro:#1c2c4a; --chip-bg:#1e2a47; --chip-off:#182034; --shadow:0 1px 3px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1626; --card:#161f36; --ink:#eef2fb; --sub:#a9b6d0; --border:#2a3654;
+  --good:#3ecb7e; --good-bg:#0f2a1d; --warn:#f0a94e; --warn-bg:#302008; --bad:#f0685f; --bad-bg:#331413;
+  --azul-claro:#1c2c4a; --chip-bg:#1e2a47; --chip-off:#182034; --shadow:0 1px 3px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;padding-block:24px;}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px;}
+.masthead{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px;}
+.logo-chip{background:#fff;border-radius:10px;padding:8px 12px;display:flex;align-items:center;box-shadow:var(--shadow);}
+.logo-chip img{height:34px;display:block;}
+.masthead h1{font-size:1.4rem;margin:0;color:var(--ink);}
+.masthead .sub{color:var(--sub);font-size:.88rem;margin-top:2px;}
+.masthead-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.period-badge{background:var(--azul-claro);color:var(--azul);font-weight:600;padding:6px 14px;border-radius:999px;font-size:.82rem;}
+.theme-btn{border:1px solid var(--border);background:var(--card);color:var(--ink);border-radius:8px;padding:7px 10px;cursor:pointer;font-size:.85rem;}
+
+.sup-toggle-wrap{margin-bottom:16px;}
+.sup-toggle-label{font-size:.78rem;color:var(--sub);text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px;display:block;}
+.sup-toggle-bar{display:flex;flex-wrap:wrap;gap:8px;}
+.sup-toggle-btn{border:1px solid var(--border);background:var(--card);color:var(--ink);border-radius:999px;padding:9px 16px;cursor:pointer;font-size:.86rem;font-weight:600;transition:background .12s,color .12s,border-color .12s;}
+.sup-toggle-btn:hover{border-color:var(--azul);}
+.sup-toggle-btn.active{background:var(--azul);border-color:var(--azul);color:#fff;}
+.sup-toggle-btn .cnt{font-weight:500;opacity:.75;margin-left:4px;font-size:.8em;}
+
+.stat-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px;}
+.stat-tile{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;box-shadow:var(--shadow);}
+.stat-tile .lbl{font-size:.74rem;color:var(--sub);text-transform:uppercase;letter-spacing:.03em;}
+.stat-tile .val{font-size:1.5rem;font-weight:700;margin-top:2px;color:var(--azul);}
+
+.search-wrap{position:sticky;top:0;background:var(--bg);padding:10px 0;z-index:5;margin-bottom:10px;}
+.search-input{width:100%;padding:11px 14px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--ink);font-size:.95rem;}
+.search-input:focus{outline:2px solid var(--azul);}
+.search-count{font-size:.78rem;color:var(--sub);margin-top:6px;}
+
+details.supervisor{background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;box-shadow:var(--shadow);overflow:hidden;}
+details.supervisor > summary{list-style:none;cursor:pointer;padding:13px 16px;display:flex;align-items:center;gap:10px;font-weight:700;}
+details.supervisor > summary::-webkit-details-marker{display:none;}
+details.supervisor > summary::before{content:'▸';display:inline-block;transition:transform .15s;color:var(--sub);}
+details.supervisor[open] > summary::before{transform:rotate(90deg);}
+.sup-name{flex:1;}
+.sup-meta{font-size:.78rem;color:var(--sub);font-weight:500;}
+.sup-total{font-size:.9rem;color:var(--azul);font-weight:700;}
+
+.tec-list{border-top:1px solid var(--border);}
+details.tecnico{border-bottom:1px solid var(--border);}
+details.tecnico:last-child{border-bottom:none;}
+details.tecnico > summary{list-style:none;cursor:pointer;padding:11px 16px 11px 30px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+details.tecnico > summary::-webkit-details-marker{display:none;}
+details.tecnico > summary::before{content:'+';display:inline-block;width:16px;color:var(--sub);font-weight:700;}
+details.tecnico[open] > summary::before{content:'–';}
+.tec-name{font-weight:600;font-size:.92rem;flex:1;min-width:160px;}
+.tec-rut{font-size:.74rem;color:var(--sub);}
+.tec-badge{font-size:.72rem;padding:2px 8px;border-radius:999px;background:var(--warn-bg);color:var(--warn);}
+.tec-total{font-weight:700;color:var(--azul);font-size:.95rem;white-space:nowrap;}
+.tec-dias-activos{font-size:.74rem;color:var(--sub);white-space:nowrap;}
+
+.tec-detail{padding:6px 16px 16px 30px;}
+.day-grid{display:flex;flex-wrap:wrap;gap:5px;}
+.day-chip{width:52px;background:var(--chip-bg);border-radius:7px;padding:5px 2px;text-align:center;}
+.day-chip.off{background:var(--chip-off);opacity:.5;}
+.day-chip .dn{font-size:.62rem;color:var(--sub);}
+.day-chip .dv{font-size:.76rem;font-weight:700;margin-top:1px;}
+
+.hidden{display:none !important;}
+footer{margin-top:24px;color:var(--sub);font-size:.78rem;text-align:center;}
+
+.login-screen{min-height:80vh;display:flex;align-items:center;justify-content:center;}
+.login-card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:32px 28px;max-width:360px;width:100%;text-align:center;}
+.login-card .logo-chip{margin:0 auto 18px;width:fit-content;}
+.login-card h2{margin:0 0 4px;font-size:1.2rem;}
+.login-card .sub{color:var(--sub);font-size:.86rem;margin-bottom:20px;}
+.login-input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--ink);font-size:1rem;text-align:center;letter-spacing:.05em;margin-bottom:6px;}
+.login-input:focus{outline:2px solid var(--azul);}
+.login-hint{font-size:.74rem;color:var(--sub);margin-bottom:16px;}
+.login-btn{width:100%;padding:12px;border-radius:10px;border:none;background:var(--azul);color:#fff;font-weight:700;font-size:.95rem;cursor:pointer;}
+.login-btn:hover{opacity:.92;}
+.login-error{color:var(--bad);font-size:.84rem;margin-top:12px;min-height:1.2em;}
+.logout-btn{border:1px solid var(--border);background:var(--card);color:var(--ink);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:.85rem;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <div class="logo-chip"><img src="data:image/png;base64,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" alt="Elecnor Chile" style="height:34px;display:block;"></div>
+      <h2>Portal Supervisores</h2>
+      <div class="sub">Producción de tu equipo por técnico</div>
+      <input class="login-input" id="rutInput" type="text" inputmode="numeric" placeholder="Últimos 6 dígitos de tu RUT" maxlength="6">
+      <div class="login-hint">Ej: RUT 12.345.678-9 → ingresa 345678</div>
+      <button class="login-btn" id="loginBtn" type="button">Ingresar</button>
+      <div class="login-error" id="loginError"></div>
+    </div>
+  </div>
+
+  <div id="mainScreen" class="hidden">
+    <div class="masthead">
+      <div class="logo-chip"><img src="data:image/png;base64,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" alt="Elecnor Chile"></div>
+      <div>
+        <h1>Producción por Técnico</h1>
+        <div class="sub" id="welcomeSub">Puntos Baremo diarios y totales</div>
+      </div>
+      <div class="masthead-right">
+        <span class="period-badge" id="periodBadge">—</span>
+        <button class="theme-btn" id="themeToggle" type="button">🌓 Tema</button>
+        <button class="logout-btn" id="logoutBtn" type="button">Cerrar sesión</button>
+      </div>
+    </div>
+
+    <div class="stat-strip" id="statStrip"></div>
+
+    <div class="search-wrap">
+      <input class="search-input" id="searchInput" type="text" placeholder="Buscar técnico por nombre...">
+      <div class="search-count" id="searchCount"></div>
+    </div>
+
+    <div id="groups"></div>
+
+    <footer>Diseñado por Xas · Última actualización: <span id="footerDate">—</span></footer>
+  </div>
+</div>
+
+<script id="produccion-data" type="application/json">{"generatedAt":"14-09-2026 16:09","periodoDesde":"15-08-2026","periodoHasta":"12-09-2026","dias":["15-08-2026","16-08-2026","17-08-2026","18-08-2026","19-08-2026","20-08-2026","21-08-2026","22-08-2026","23-08-2026","24-08-2026","25-08-2026","26-08-2026","27-08-2026","28-08-2026","29-08-2026","30-08-2026","31-08-2026","01-09-2026","02-09-2026","03-09-2026","04-09-2026","05-09-2026","06-09-2026","07-09-2026","08-09-2026","09-09-2026","10-09-2026","11-09-2026","12-09-2026"],"tecnicos":[{"Rut":"15714377-8","Nombre":"BENJAMIN ALFREDO MIRANDA IRARRAZABAL","Supervisor":"JUAN CARLOS ESPAÑA GUERRERO","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":127.32,"DiasActivos":24,"Dias":[null,null,4.83,4.5,4.63,10.53,5.63,2.2,null,5.26,6.2,4.7,3.5,6.5,5.7,null,5.9,6.33,5.63,5.13,5.83,3.2,null,6.83,6.2,6.83,4.5,3.13,3.63]},{"Rut":"20175491-7","Nombre":"CHRISTOPHER PATRICK LISBOA BARRERA","Supervisor":"JUAN CARLOS ESPAÑA GUERRERO","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":125.55,"DiasActivos":23,"Dias":[null,null,4.63,3,6.4,8.03,5.63,6.33,null,9.46,5.63,7.33,6.6,9.03,1,null,8.03,5.63,6,4.4,4.4,3.13,null,3,5.5,5.63,4.26,2.5,null]},{"Rut":"11400843-5","Nombre":"FRANCISCO ERNESTO GUERRA GOMEZ","Supervisor":"JUAN CARLOS ESPAÑA GUERRERO","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":150.69,"DiasActivos":24,"Dias":[null,null,9.4,6.4,5,7.03,3.2,8.03,null,5.2,4.63,6.4,5.83,8.03,6.1,null,7.26,5.2,4.7,5.96,6.53,5.4,null,5.4,7.03,9.83,7.33,7.1,3.7]},{"Rut":"15660308-2","Nombre":"GONZALO ANDRES TAPIA VASCONCELO","Supervisor":"JUAN CARLOS ESPAÑA GUERRERO","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":145.14,"DiasActivos":24,"Dias":[null,null,5.63,5.63,6,7,8.2,6.5,null,6.83,5,7.5,10.3,8.33,5.7,null,5.5,6.5,5,6.7,3.7,3.13,null,6.26,5.33,5.5,5.7,4.5,4.7]},{"Rut":"13012226-4","Nombre":"JAVIER ANDRE PARRA ROJAS","Supervisor":"JUAN CARLOS ESPAÑA GUERRERO","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":80.71,"DiasActivos":19,"Dias":[null,null,null,null,2,5.2,5,null,6,2.5,2,0,3.5,4,4.13,null,4,2.5,6.5,4.5,5.13,null,4.7,4.7,6.39,0,null,4.13,3.83]},{"Rut":"16034875-5","Nombre":"JORGE EDUARDO JORQUERA FLORES","Supervisor":"JUAN CARLOS ESPAÑA GUERRERO","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":111.76,"DiasActivos":15,"Dias":[null,null,null,null,null,null,null,null,null,null,null,null,7.83,6.4,6.9,null,9.6,8.53,13.23,7.23,9.76,5.83,null,10.46,6.1,7.96,5.53,2.7,3.7]},{"Rut":"13650694-3","Nombre":"JORGE RENE RAMIREZ DE LA BARRA","Supervisor":"JUAN CARLOS ESPAÑA GUERRERO","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":133.61,"DiasActivos":24,"Dias":[null,null,5.7,5.5,7.5,4.5,9.46,3.5,null,5.5,5.4,6.63,3.5,6.5,3,null,5.2,2.5,8.2,4.2,7.2,5.2,null,8.03,5.83,5.4,6.63,5.4,3.13]},{"Rut":"10792174-5","Nombre":"JOSE GERARDO CORNEJO GARRIDO","Supervisor":"JUAN CARLOS ESPAÑA GUERRERO","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":138.72,"DiasActivos":24,"Dias":[null,null,6.63,6.83,8.46,7.9,3.63,4.5,null,7.63,7,5.13,3,1.5,6,null,6.13,7.03,5.2,7,6.9,4.63,null,5.63,5.13,7.33,5.7,6.13,3.7]},{"Rut":"19325742-9","Nombre":"JUAN ESTEBAN MARTINEZ LOCK","Supervisor":"JUAN CARLOS ESPAÑA GUERRERO","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":141.75,"DiasActivos":25,"Dias":[9.5,null,6.2,5,5.63,6.5,9.03,6.5,null,7.7,2.2,4,6.5,8.63,2.2,null,9.03,5,7.2,6,2.5,1,null,5.5,5,8.13,5.9,4.2,2.7]},{"Rut":"17144358-K","Nombre":"JUAN HERIBERTO VARGAS ALARCON","Supervisor":"JUAN CARLOS ESPAÑA GUERRERO","Procedencia":"ELECRECE 2","Estado2":"ACTIVO","Total":142.74,"DiasActivos":24,"Dias":[null,null,8.4,6.9,4.4,6.4,7.6,6.2,null,8.4,5.13,4.4,10.03,9.03,3.5,null,4.7,8.96,6.7,4.83,8.03,5.1,null,2,3.83,5.4,4.7,4.9,3.2]},{"Rut":"17165085-2","Nombre":"MANUEL DARIO JELDES ARANCIBIA","Supervisor":"JUAN CARLOS ESPAÑA GUERRERO","Procedencia":"ELECRECE 2","Estado2":"ACTIVO","Total":143.85,"DiasActivos":24,"Dias":[null,null,9.83,6.63,9.83,8.33,7.26,1,null,9.13,4.83,8.1,6.83,7.26,3.5,null,3.5,5.2,6.2,6.53,8.83,1,null,6.33,5.2,8.13,3.2,4.5,2.7]},{"Rut":"19469218-8","Nombre":"MATIAS HERNAN VILLALOBOS RAMOS","Supervisor":"JUAN CARLOS ESPAÑA GUERRERO","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":162.52,"DiasActivos":25,"Dias":[12,7.7,7.13,8.5,5.2,7.5,10.4,null,null,8.2,4,2,5.33,5.5,5,null,9.2,4.5,6.7,7.7,9.9,3.13,null,8,3,8.1,9.13,3,1.7]},{"Rut":"20521993-5","Nombre":"MATIAS RODRIGO MONTECINOS POZO","Supervisor":"JUAN CARLOS ESPAÑA GUERRERO","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":160.7,"DiasActivos":23,"Dias":[null,null,10.13,6.63,8.83,6.33,11.46,2.63,null,7.2,3,9.63,8.26,2,6.13,null,13.26,6,8,6.83,8.33,1.7,null,5,4.5,10.33,7.26,7.26,null]},{"Rut":"18915265-5","Nombre":"OSCAR ANDRES JOFRE LE CERF","Supervisor":"JUAN CARLOS ESPAÑA GUERRERO","Procedencia":"ELECRECE 2","Estado2":"ACTIVO","Total":179.48,"DiasActivos":25,"Dias":[8.53,null,8.83,7.6,8.7,8.5,11.46,6.2,null,5.4,4.2,3.7,10.23,9.66,6.83,null,6.63,14.33,6.2,5.7,8.23,4.2,null,6.83,4.4,7.53,7.39,6.2,2]},{"Rut":"17473940-4","Nombre":"PATRICIO EDUARDO DELANO SCHWAIGER","Supervisor":"JUAN CARLOS ESPAÑA GUERRERO","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":168.15,"DiasActivos":23,"Dias":[null,null,7.7,6.4,5.5,7.83,5.4,5.83,null,9.96,7.03,10.73,10.8,5.9,null,7.1,9.33,9.4,9.09,6.46,8.53,null,null,9.1,3,6.83,7.2,3.7,5.33]},{"Rut":"16523139-2","Nombre":"PEDRO ISAIAS CONCHA JORQUERA","Supervisor":"JUAN CARLOS ESPAÑA GUERRERO","Procedencia":"ELECRECE 1","Estado2":"ACTIVO","Total":144.23,"DiasActivos":24,"Dias":[null,null,5.63,6.63,7,7.63,10.33,5.4,null,3.5,2,10.63,4.4,3.5,5.63,null,9.63,5.13,7.9,5.9,8.46,7.2,null,6.7,5,7.33,5.7,2,1]},{"Rut":"25671905-3","Nombre":"PROPHETE GABRIEL","Supervisor":"JUAN CARLOS ESPAÑA GUERRERO","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":135.29,"DiasActivos":24,"Dias":[7,null,8.13,5,3,9.2,10,null,5,6,7,4.5,4,6,null,null,4,6.5,5.5,7.7,5,3,null,5,3.5,2,6.63,8.13,3.5]},{"Rut":"11620226-3","Nombre":"ABELARDO HIPOLITO VENEGAS HERNANDEZ","Supervisor":"JULIO HERNAN PINTO HERRERA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":168.73,"DiasActivos":24,"Dias":[null,null,9,12.43,5.26,6.7,10.9,3.7,null,7.03,2.5,6.4,3.5,7.83,6.2,null,10.1,9.23,7.9,8.6,4.83,6.83,null,7.26,5.5,5,6.83,7.6,7.6]},{"Rut":"12056884-1","Nombre":"ALEJANDRO ENRIQUE LAGOS GONZALEZ","Supervisor":"JULIO HERNAN PINTO HERRERA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":204.19,"DiasActivos":26,"Dias":[8.03,null,8,6.6,9.9,12.53,12.93,8.9,null,8.2,6,7.13,9.13,11,6.2,11.2,10.1,11.8,7.13,10.96,10.23,2.13,null,4.7,4,4.4,7.03,3.83,2.13]},{"Rut":"15957153-K","Nombre":"CRISTIAN ANDRES VASQUEZ MUNOZ","Supervisor":"JULIO HERNAN PINTO HERRERA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":201.64,"DiasActivos":25,"Dias":[10,null,7.63,10.63,6.63,10.63,11.63,7.63,null,12.26,6.76,10.13,8.13,7.26,6,null,7,9.63,2,9.13,7.13,5.63,null,8.26,6.76,7,9.26,6.63,7.89]},{"Rut":"19772487-0","Nombre":"CRISTIAN NICOLAS SERRANO VELLAGAS","Supervisor":"JULIO HERNAN PINTO HERRERA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":119.06,"DiasActivos":19,"Dias":[null,null,null,null,null,null,null,8,null,9.4,4.5,4.5,6.2,5.2,6.83,null,7.89,6.2,6.33,5.7,8.83,5.7,null,7.26,5.26,5.2,5.83,3.83,6.4]},{"Rut":"13358326-2","Nombre":"EDISON ANONIO LOPEZ CONTRERAS","Supervisor":"JULIO HERNAN PINTO HERRERA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":96.58,"DiasActivos":20,"Dias":[null,null,null,6.2,5,2.63,3.5,6.7,null,8.4,2,2,null,8.03,4.2,0,6.2,null,3.7,5.9,4.2,3.2,null,7.1,4.83,5.53,2.13,5.13,null]},{"Rut":"17805227-6","Nombre":"ESTEBAN DAVID ORTIZ FIGUEROA","Supervisor":"JULIO HERNAN PINTO HERRERA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":182.82,"DiasActivos":23,"Dias":[null,null,10.5,2.5,8.6,10.1,8.6,5.63,null,7.83,8,9.46,9.9,10.03,5.7,null,6.4,8.3,6.9,6.8,6.76,null,6.83,9.96,11.03,7.83,7.83,7.33,null]},{"Rut":"21454208-0","Nombre":"FRANCO JOSUE DIAZ NUNEZ","Supervisor":"JULIO HERNAN PINTO HERRERA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":98.69,"DiasActivos":22,"Dias":[5.2,null,7.7,3.2,4.2,5.83,4.2,3.2,null,0,0,4.83,6.26,5.26,3.63,null,7.33,5,4.13,3.4,5.9,4.26,null,1,3.13,1.5,0,7.03,2.5]},{"Rut":"16230919-6","Nombre":"HECTOR DAVID AVALOS RUPCICH","Supervisor":"JULIO HERNAN PINTO HERRERA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":79.2,"DiasActivos":17,"Dias":[null,null,2,4,4.2,3.5,6.5,5.2,null,8.2,5.2,5,0,3.2,4.2,null,3,6,7.4,5.9,3.7,2,null,null,null,null,null,null,null]},{"Rut":"26972231-2","Nombre":"HECTOR JOSE ORTIZ MARQUEZ","Supervisor":"JULIO HERNAN PINTO HERRERA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":130.87,"DiasActivos":24,"Dias":[null,null,9.13,7.7,6.5,6.83,8.2,3,null,5.63,4.5,4,3.5,3,6.63,null,7.2,4.13,7.33,5.2,3,2.13,null,7.83,3.5,4.2,6.4,5.83,5.5]},{"Rut":"12637747-9","Nombre":"HECTOR LEONARDO MUNOZ MIRANDA","Supervisor":"JULIO HERNAN PINTO HERRERA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":155.33,"DiasActivos":24,"Dias":[10.2,null,8.7,9,5.5,7,7,6.5,null,7,6,5,6.5,6.5,5.7,null,7.2,8.5,7.63,4.5,6.5,0,null,3,6,6,3,7.2,5.2]},{"Rut":"15445679-1","Nombre":"IVAN ALEJANDRO CALDERON MUNOZ","Supervisor":"JULIO HERNAN PINTO HERRERA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":128.57,"DiasActivos":25,"Dias":[9,null,5.2,2.5,6.63,5.83,7.2,7.4,null,4.63,6.83,1,5.63,5.2,5,null,6.13,3.83,3,5.2,3.5,1.5,null,4.5,2.5,6.2,8.13,6.5,5.53]},{"Rut":"14472203-5","Nombre":"JONATHAN RICARDO HENRIQUEZ VENEGAS","Supervisor":"JULIO HERNAN PINTO HERRERA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":118.71,"DiasActivos":23,"Dias":[null,null,1,9.4,6.2,4.7,null,3.2,5.2,7.2,2,6.83,4.2,7.7,null,null,4.2,3.5,7.1,5.7,7.83,5.2,null,8.16,3.13,3.2,1.7,8.23,3.13]},{"Rut":"18380853-2","Nombre":"JOSE LUIS MUNOZ RAMOS","Supervisor":"JULIO HERNAN PINTO HERRERA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":118.66,"DiasActivos":23,"Dias":[null,4.7,2,6.2,5,2,10.7,null,null,3.5,5,4.7,0,2,2,null,5.5,7.5,7.5,3,6.13,6.13,null,7,5.7,5.7,6.7,6,4]},{"Rut":"9338001-0","Nombre":"JOSE MANUEL SEPULVEDA ROJAS","Supervisor":"JULIO HERNAN PINTO HERRERA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":129.51,"DiasActivos":24,"Dias":[null,null,2,6.7,4.2,8.03,6.9,5.4,null,5.4,5.4,7.4,5.4,6.4,3.2,null,5,5.5,2,3.7,6.53,2.7,null,7.63,5.83,5.2,5.26,6.4,7.33]},{"Rut":"26658025-8","Nombre":"JUAN JOSE MARCANO GONZALEZ","Supervisor":"JULIO HERNAN PINTO HERRERA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":149.97,"DiasActivos":24,"Dias":[5.4,null,7.1,7.83,7.2,null,7,7.13,null,8.2,6.2,5.2,2.5,5,5.9,null,6.83,8.7,7.13,4.7,7.4,5.63,null,6.83,3.7,5.83,5.7,8.03,4.83]},{"Rut":"12221336-6","Nombre":"MARCO MANUEL VEGA VEGA","Supervisor":"JULIO HERNAN PINTO HERRERA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":128.76,"DiasActivos":24,"Dias":[null,null,7.2,6.7,9.2,6.4,5.2,4,null,6.5,5.2,4.5,3.5,4,2,null,8.83,6.2,5.2,3.5,5.2,5.13,null,6.4,4.2,5,2.5,6,6.2]},{"Rut":"18706092-3","Nombre":"MATIAS RUBEN RUBINA BURGOS","Supervisor":"JULIO HERNAN PINTO HERRERA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":97.9,"DiasActivos":24,"Dias":[null,6.2,5.5,5.2,8.5,6,1,null,null,4,3,3,2,4.4,3.5,null,8.7,2,8,3.5,4,3,null,2,2.5,3.2,2.7,3,3]},{"Rut":"16403671-5","Nombre":"MAURICIO RODOLFO ASTORGA HERRERA","Supervisor":"JULIO HERNAN PINTO HERRERA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":3,"DiasActivos":1,"Dias":[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,3]},{"Rut":"9998160-1","Nombre":"NESTOR FABIAN PASTEN ALARCON","Supervisor":"JULIO HERNAN PINTO HERRERA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":8.2,"DiasActivos":2,"Dias":[null,null,4,4.2,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]},{"Rut":"11826964-0","Nombre":"RICHARDS ANTONIO CRUZ CUEVAS","Supervisor":"JULIO HERNAN PINTO HERRERA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":104.19,"DiasActivos":22,"Dias":[2,2.5,null,null,null,4.5,3.5,4.2,null,7,5.2,null,2.63,5,3.5,5,4.63,3.5,null,5,6.4,6.7,null,6.5,6.2,2,5.7,7.4,5.13]},{"Rut":"18741232-3","Nombre":"SEBASTIAN ANDRES SANCHEZ CAYUQUEO","Supervisor":"JULIO HERNAN PINTO HERRERA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":182.36,"DiasActivos":25,"Dias":[8.5,null,8,9,7.5,8.5,10.13,6,null,5,7.26,3,8.6,6.4,9.83,null,10.2,8.76,9.63,4,2,4,null,9.26,7.6,7.26,9.13,7.4,5.4]},{"Rut":"17769689-7","Nombre":"SIMON ANDRES SILVA PHILIP","Supervisor":"JULIO HERNAN PINTO HERRERA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":132.86,"DiasActivos":22,"Dias":[7.5,null,9,6.5,7.5,7,11.5,6.5,null,3.5,null,null,null,6.5,5,null,6.2,7.63,7,4.5,5.63,2.5,null,6.9,6.5,3.5,5.5,4,2.5]},{"Rut":"17160888-0","Nombre":"ALEJANDRO NICOLAS PARA GOMEZ","Supervisor":"RAMON CARLOS VARGAS FONTECHA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":150.44,"DiasActivos":23,"Dias":[null,null,4,11.96,3,7,8.2,7.2,null,7,4,7.26,8.9,8.4,8.03,null,4.63,4,7.63,8,7.6,3.5,4,null,8,2,7.63,8.5,null]},{"Rut":"16033846-6","Nombre":"ALEJANDRO SEBASTIAN CISTERNAS MARIN","Supervisor":"RAMON CARLOS VARGAS FONTECHA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":152.63,"DiasActivos":25,"Dias":[5.83,null,10.03,8.83,4.83,5.7,5,5.5,null,7,5.2,4.5,9.83,6.63,5.63,null,8.5,7.2,6.4,4.7,4.5,3.63,null,5,6.83,5,6.7,7.96,1.7]},{"Rut":"19016218-4","Nombre":"BASTIAN IGNACIO RIOS MADRID","Supervisor":"RAMON CARLOS VARGAS FONTECHA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":110.93,"DiasActivos":23,"Dias":[null,null,4.83,5.9,6.2,9.66,5.2,2,null,2.63,2.2,3,6.7,5.83,null,4.2,7.39,6.96,6.4,7.6,2.13,null,null,4,3.7,1,6.2,3.7,3.5]},{"Rut":"21504558-7","Nombre":"CARLOS HERNAN MUNOZ MATUS","Supervisor":"RAMON CARLOS VARGAS FONTECHA","Procedencia":"ELECRECE 2","Estado2":"ACTIVO","Total":168.87,"DiasActivos":23,"Dias":[null,null,0,10.2,8.13,5.5,10.83,7.4,null,5.4,7.63,7.5,8.13,7.2,4.63,null,6.63,7.6,9.2,9.33,6.2,4,null,8.9,7.5,8.13,5.2,7,6.63]},{"Rut":"26758689-6","Nombre":"DANIEL ALEXANDER RAMIREZ TORRES","Supervisor":"RAMON CARLOS VARGAS FONTECHA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":162.53,"DiasActivos":24,"Dias":[5.26,6.2,4.7,null,null,10.6,6.4,8.2,null,4.4,9.8,5.4,8.4,7.63,3.63,null,11.8,6.4,5.7,null,5.4,5.83,4.4,6.63,7,7.46,10.46,6,4.83]},{"Rut":"15764873-K","Nombre":"FABIAN GONZALO SAAVEDRA VILCHES","Supervisor":"RAMON CARLOS VARGAS FONTECHA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":110.36,"DiasActivos":21,"Dias":[null,null,4,5.63,7.4,null,null,6.4,null,5.2,4.5,3.5,4.5,4,3.5,null,3,5.5,6.5,3.5,8.5,4.5,null,7.5,6.5,5.5,null,7.33,3.4]},{"Rut":"13426625-2","Nombre":"FERNANDO ALEXIS HOLM MORALES","Supervisor":"RAMON CARLOS VARGAS FONTECHA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":128.08,"DiasActivos":23,"Dias":[7.4,null,3.7,7.7,6.5,6,0,4.5,7.9,7.5,4.5,5.83,8.13,null,6.2,null,5.63,6.4,5.13,3,null,1.7,5.4,6,2.13,6,7.7,3.13,null]},{"Rut":"17476343-7","Nombre":"FRANCISCO ESTEBAN CARMONA CASTRO","Supervisor":"RAMON CARLOS VARGAS FONTECHA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":82,"DiasActivos":22,"Dias":[null,null,2,4.5,4.5,3,3,3,null,5,4,2.5,6.5,3,4.5,null,4,null,3.5,4.5,5,1,null,1,4.5,4,2,7,null]},{"Rut":"10387787-3","Nombre":"HECTOR FERNANDO QUIROZ TORRES","Supervisor":"RAMON CARLOS VARGAS FONTECHA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":81.9,"DiasActivos":19,"Dias":[null,null,null,null,null,4.2,5,4,null,5,2,3.5,6.2,null,null,null,3.5,5.5,5.5,6.5,8.7,1,null,5.2,4.2,2.5,4,2,3.4]},{"Rut":"13428454-4","Nombre":"HENRY MURIEL DIAZ TORRIJO","Supervisor":"RAMON CARLOS VARGAS FONTECHA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":128.61,"DiasActivos":24,"Dias":[null,null,3,12.09,6.26,7.7,4.5,7.03,null,4.83,4.4,5.83,2,6.33,3.63,null,3.2,6.13,6.4,4.2,4.83,5.63,null,6.4,5.2,4,3.63,6.13,5.26]},{"Rut":"18829522-3","Nombre":"JAIR JESUS VALENCIA DIAZ","Supervisor":"RAMON CARLOS VARGAS FONTECHA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":145.81,"DiasActivos":23,"Dias":[null,null,7.7,7.63,3.63,7.2,7.83,8.26,null,10.03,2.63,8.46,4.63,null,5.83,null,3.2,7.2,7.03,6,5.33,5.83,null,8,9.33,5.33,5.7,5.83,3.2]},{"Rut":"21597345-K","Nombre":"JOSUE ORELLANA ALARCON","Supervisor":"RAMON CARLOS VARGAS FONTECHA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":74.83,"DiasActivos":23,"Dias":[null,null,3,4.5,2.5,2,5,3,null,5.5,3.2,null,3,5.5,3.5,4.5,3.5,4,null,2.5,1.5,2.13,null,2,2.5,3.5,3,3.5,1.5]},{"Rut":"26266054-0","Nombre":"LUIS ALFONSO VALLEJO GARCIA","Supervisor":"RAMON CARLOS VARGAS FONTECHA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":156.44,"DiasActivos":24,"Dias":[null,null,9.83,9.2,11,12.1,5,4,null,6.5,3,6.2,9.63,3.2,null,5.7,8.63,6.5,5,3,7.83,2,null,6.26,7.4,4.5,7.7,6,6.26]},{"Rut":"17478977-0","Nombre":"PATRICIO CANALES GEVE","Supervisor":"RAMON CARLOS VARGAS FONTECHA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":198.63,"DiasActivos":24,"Dias":[null,null,8.4,8.7,7.33,9.7,13.73,4.2,null,8.83,6,5.5,9.6,9.7,8.46,null,12.2,8.2,8.63,7.5,9.2,4.2,null,8.4,1,8.63,10.66,12.1,7.76]},{"Rut":"13637135-5","Nombre":"SANTIAGO EMILIO ANGEL ARIAS","Supervisor":"RAMON CARLOS VARGAS FONTECHA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":195.45,"DiasActivos":23,"Dias":[null,null,7.63,9.7,9.9,12.6,8.2,10.33,null,7.7,6.63,5.63,12.53,0,6.5,null,13.76,7.1,8.6,9.96,4.2,3.2,null,6.7,11.76,9.7,9.33,7.96,5.83]},{"Rut":"10466681-7","Nombre":"WILFRED RENE ROCCO ZUNIGA","Supervisor":"RAMON CARLOS VARGAS FONTECHA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":140.92,"DiasActivos":24,"Dias":[null,null,10.2,8.4,6.7,6.7,7.4,5.2,null,5.5,2,5,4.63,7.7,5,null,7.7,6.7,3,5.7,5.2,3,null,9.2,5.5,3.13,6.13,6.4,4.83]},{"Rut":"12104020-4","Nombre":"YUSSEF ALI SAT PINO","Supervisor":"RAMON CARLOS VARGAS FONTECHA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":122.71,"DiasActivos":25,"Dias":[1,6.83,5,null,5.2,5,5.5,4.7,null,3.2,6.2,5.63,6.4,5.63,6.13,null,4.5,3,5.2,6.2,1.5,6.13,null,4.5,3,6,8.76,4,3.5]},{"Rut":"10642853-0","Nombre":"JAIME ALEJANDRO FIGUEROA PINO","Supervisor":"RAMON CARLOS VARGAS FONTECHA","Procedencia":"DIRECTO","Estado2":"ACTIVO","Total":104.85,"DiasActivos":22,"Dias":[null,null,0,3,5.63,4,4,null,4,4.5,3.5,7.7,null,4,7,6.83,3.63,3,2,7.4,5.13,null,null,6.2,3,4.5,4.5,6.63,4.7]}]}</script>
+<script>
+(function(){
+  var DATA = JSON.parse(document.getElementById('produccion-data').textContent);
+
+  // Login por RUT: ultimos 6 digitos antes del digito verificador (K -> 0), igual que el
+  // Portal Produccion Tecnicos existente. Set cerrado de supervisores (no hay fuente para
+  // Samuel Valenzuela -- no tiene tecnicos asignados actualmente de todas formas).
+  var SUPERVISOR_RUTS = {
+    '857535': 'JUAN CARLOS ESPAÑA GUERRERO',
+    '420332': 'JULIO HERNAN PINTO HERRERA',
+    '914420': 'RAMON CARLOS VARGAS FONTECHA'
+  };
+
+  function fmt1(n){ if (n===null||n===undefined) return '–'; return n.toLocaleString('es-CL',{minimumFractionDigits:1,maximumFractionDigits:1}); }
+  function fmt0(n){ return Math.round(n).toLocaleString('es-CL'); }
+
+  document.getElementById('periodBadge').textContent = DATA.periodoDesde + ' al ' + DATA.periodoHasta;
+  document.getElementById('footerDate').textContent = DATA.generatedAt;
+
+  // Group by supervisor, preserving order already sorted server-side
+  var bySup = {};
+  var supOrder = [];
+  DATA.tecnicos.forEach(function(t){
+    if (!bySup[t.Supervisor]) { bySup[t.Supervisor] = []; supOrder.push(t.Supervisor); }
+    bySup[t.Supervisor].push(t);
+  });
+
+  function dayNum(dStr){ return dStr.split('-')[0]; }
+
+  function renderStats(list){
+    var total = 0;
+    list.forEach(function(t){ total += t.Total; });
+    var html = ''
+      + '<div class="stat-tile"><div class="lbl">Técnicos</div><div class="val">'+list.length+'</div></div>'
+      + '<div class="stat-tile"><div class="lbl">Baremo total periodo</div><div class="val">'+fmt1(total)+' pts</div></div>'
+      + '<div class="stat-tile"><div class="lbl">Promedio por técnico</div><div class="val">'+fmt1(list.length ? total/list.length : 0)+' pts</div></div>';
+    document.getElementById('statStrip').innerHTML = html;
+  }
+
+  function renderGroups(supsToShow){
+    var groupsHtml = '';
+    supsToShow.forEach(function(sup, gi){
+      var list = bySup[sup];
+      var supTotal = 0;
+      list.forEach(function(t){ supTotal += t.Total; });
+
+      var tecRows = list.map(function(t){
+        var chips = DATA.dias.map(function(d, i){
+          var v = t.Dias[i];
+          if (v === null || v === undefined) {
+            return '<div class="day-chip off"><div class="dn">'+dayNum(d)+'</div><div class="dv">–</div></div>';
+          }
+          return '<div class="day-chip"><div class="dn">'+dayNum(d)+'</div><div class="dv">'+fmt1(v)+'</div></div>';
+        }).join('');
+        var estadoBadge = (t.Estado2 && t.Estado2 !== 'ACTIVO') ? '<span class="tec-badge">'+t.Estado2+'</span>' : '';
+        return '<details class="tecnico" data-nombre="'+t.Nombre.toLowerCase()+'">'
+          + '<summary>'
+          + '<span class="tec-name">'+t.Nombre+'</span>'
+          + estadoBadge
+          + '<span class="tec-rut">'+t.Rut+'</span>'
+          + '<span class="tec-dias-activos">'+t.DiasActivos+' días activos</span>'
+          + '<span class="tec-total">'+fmt1(t.Total)+' pts</span>'
+          + '</summary>'
+          + '<div class="tec-detail"><div class="day-grid">'+chips+'</div></div>'
+          + '</details>';
+      }).join('');
+
+      groupsHtml += '<details class="supervisor" data-group-index="'+gi+'" open>'
+        + '<summary><span class="sup-name">'+sup+'</span><span class="sup-meta">'+list.length+' técnicos</span><span class="sup-total">'+fmt1(supTotal)+' pts</span></summary>'
+        + '<div class="tec-list">'+tecRows+'</div>'
+        + '</details>';
+    });
+    document.getElementById('groups').innerHTML = groupsHtml;
+    rebindFilter();
+  }
+
+  // ---- Sesion: un supervisor autenticado ve solo su propio equipo ----
+  var searchInput = document.getElementById('searchInput');
+  var searchCount = document.getElementById('searchCount');
+  var loginScreen = document.getElementById('loginScreen');
+  var mainScreen = document.getElementById('mainScreen');
+  var rutInput = document.getElementById('rutInput');
+  var loginBtn = document.getElementById('loginBtn');
+  var loginError = document.getElementById('loginError');
+
+  function applyView(sup){
+    var list = bySup[sup] || [];
+    document.getElementById('welcomeSub').textContent = 'Equipo de ' + sup;
+    renderStats(list);
+    renderGroups([sup]);
+    searchInput.value = '';
+    searchCount.textContent = '';
+  }
+
+  function doLogin(){
+    var code = rutInput.value.replace(/[^0-9kK]/g, '').trim();
+    var sup = SUPERVISOR_RUTS[code];
+    if (!sup || !bySup[sup]) {
+      loginError.textContent = 'RUT no reconocido. Verifica los últimos 6 dígitos.';
+      return;
+    }
+    loginError.textContent = '';
+    try { sessionStorage.setItem('portal_sup_session', code); } catch(e){}
+    loginScreen.classList.add('hidden');
+    mainScreen.classList.remove('hidden');
+    applyView(sup);
+  }
+
+  loginBtn.addEventListener('click', doLogin);
+  rutInput.addEventListener('keydown', function(e){ if (e.key === 'Enter') doLogin(); });
+
+  document.getElementById('logoutBtn').addEventListener('click', function(){
+    try { sessionStorage.removeItem('portal_sup_session'); } catch(e){}
+    mainScreen.classList.add('hidden');
+    loginScreen.classList.remove('hidden');
+    rutInput.value = '';
+    loginError.textContent = '';
+    rutInput.focus();
+  });
+
+  // Retomar sesion si ya habia una en esta pestaña
+  try {
+    var savedCode = sessionStorage.getItem('portal_sup_session');
+    if (savedCode && SUPERVISOR_RUTS[savedCode]) {
+      loginScreen.classList.add('hidden');
+      mainScreen.classList.remove('hidden');
+      applyView(SUPERVISOR_RUTS[savedCode]);
+    }
+  } catch(e){}
+
+  function rebindFilter(){
+    var allSupDetails = Array.prototype.slice.call(document.querySelectorAll('details.supervisor'));
+    var allTecDetails = Array.prototype.slice.call(document.querySelectorAll('details.tecnico'));
+
+    function doFilter(){
+      var q = searchInput.value.trim().toLowerCase();
+      var visibleCount = 0;
+      if (!q) {
+        allTecDetails.forEach(function(d){ d.classList.remove('hidden'); d.open = false; });
+        allSupDetails.forEach(function(d){ d.classList.remove('hidden'); d.open = true; });
+        searchCount.textContent = '';
+        return;
+      }
+      allSupDetails.forEach(function(sup){
+        var tecs = Array.prototype.slice.call(sup.querySelectorAll('details.tecnico'));
+        var anyMatch = false;
+        tecs.forEach(function(t){
+          var match = t.getAttribute('data-nombre').indexOf(q) !== -1;
+          t.classList.toggle('hidden', !match);
+          t.open = match;
+          if (match) { anyMatch = true; visibleCount++; }
+        });
+        sup.classList.toggle('hidden', !anyMatch);
+        sup.open = anyMatch;
+      });
+      searchCount.textContent = visibleCount + ' técnico(s) encontrado(s)';
+    }
+    searchInput.oninput = doFilter;
+  }
+
+  var btn = document.getElementById('themeToggle');
+  var root = document.documentElement;
+  try {
+    var saved = localStorage.getItem('produccion-tecnico-theme');
+    if (saved) root.setAttribute('data-theme', saved);
+  } catch(e){}
+  btn.addEventListener('click', function(){
+    var cur = root.getAttribute('data-theme');
+    var next = cur === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('produccion-tecnico-theme', next); } catch(e){}
+  });
+})();
+</script>
+</body>
+</html>
+
